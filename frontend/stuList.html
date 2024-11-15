@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+	<head>  
+	  <meta charset="utf-8">  
+	  <title>学生列表</title>  
+	  <style>  
+	    /* 居中对齐 */  
+	    .center {  
+	      text-align: center;  
+	    }  	  
+	    /* 表格样式 */  
+	    .el-table {  
+	      font-size: 16px; /* 设置字体大小 */  
+	      margin-top: 30px; /* 设置表格上边距 */  
+		  margin-left: 90px;
+	    }  
+	    
+	    /* 奇数行样式 */  
+	    .el-table__body tr:nth-child(odd) {  
+	      background-color: #d8ffff; /* 设置奇数行背景色 */  
+	    }  
+	  
+	    /* 偶数行样式 */  
+	    .el-table__body tr:nth-child(even) {  
+	      background-color: #ffffff; /* 设置偶数行背景色 */  
+	    }  
+	  </style>  
+	  
+	  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">  
+	</head>
+	<body>
+		<div id="app" class="center">	
+			
+			<div class="center">  
+			    <h3>学生信息列表</h3>  
+			</div>
+			<hr />
+			<el-input v-model="inputId" placeholder="请输入学号" style="width: 150px; height: 30px;"></el-input>
+			<el-link icon="el-icon-search" @click="findStu">查找学生</el-link>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<el-link icon="el-icon-circle-plus-outline" @click="addVisible = true">添加学生</el-link>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<el-link icon="el-icon-refresh-right" href="stuList.html">刷新表格</el-link>
+			
+			<p></p>
+			
+			
+		<el-table :data="Students"  border style="width: 750px">
+			<el-table-column fixed prop="stuName" label="姓名" width="150">
+			</el-table-column>
+			<el-table-column prop="stuId" label="学号" width="150">
+			</el-table-column>
+			<el-table-column prop="stuPwd" label="密码" width="150">
+			</el-table-column>
+			<el-table-column prop="phoneNum" label="电话" width="150">
+			</el-table-column>
+
+			<el-table-column label="操作" width="150">
+				<template slot-scope="scope">
+					
+					<el-popconfirm :title="`确定删除学号为:'${scope.row.stuId}'的学生?删除后不可恢复`"
+						@confirm="delStu(scope.row.stuId)">
+						
+						<el-link circle icon="el-icon-delete" slot="reference" type="danger">删除</el-link>
+					
+					</el-popconfirm>
+					&nbsp;&nbsp;
+					<el-link circle icon="el-icon-edit" slot="reference" type="primary" @click="edit(scope.row.stuId)">修改</el-link>
+					
+				</template>
+			</el-table-column>
+		</el-table>	
+		
+			<!-- 分页组件 -->	
+			<div class="pagination-container" style="margin-top: 20px">
+			      <el-pagination
+			        background
+			        layout="total, prev, pager, next, jumper"
+					:total="total"
+			        :current-page="currentPage"
+			        :page-size="pageSize"			        
+			        @current-change="handlePageChange"
+			        @size-change="handleSizeChange">
+			      </el-pagination>
+			    </div>
+			
+			
+				<el-dialog
+			            title="修改信息"
+			            :visible.sync="updateVisible" >
+			        <el-form :model="stuForm" :rules="rules" ref="stuForm" label-width="100px" class="demo-ruleForm">
+			        						
+						<el-form-item label="姓名" prop="stuName">
+							<el-input v-model="stuForm.stuName"></el-input>
+						</el-form-item>
+						
+						<el-form-item label="学号" prop="stuId">
+							<el-input v-model="stuForm.stuId":disabled="true"></el-input>
+						</el-form-item>
+										
+						<el-form-item label="密码" prop="stuPwd">
+							<el-input v-model="stuForm.stuPwd"></el-input>
+						</el-form-item>
+						
+						<el-form-item label="电话" prop="phoneNum">
+							<el-input v-model="stuForm.phoneNum"></el-input>
+						</el-form-item>
+					  
+			            <el-form-item>						
+						<el-button @click="updateVisible = false">取消</el-button>
+			            <el-button @click="save">保存</el-button>			            
+			            </el-form-item>
+			        </el-form>
+			    </el-dialog>
+				
+				<el-dialog
+				        title="添加信息"
+				        :visible.sync="addVisible">
+				    <el-form :model="stuForm" :rules="rules" ref="stuForm" label-width="100px" class="demo-ruleForm">
+				    						
+						<el-form-item label="姓名" prop="stuName">
+							<el-input v-model="stuForm.stuName"></el-input>
+						</el-form-item>
+						
+						<el-form-item label="学号" prop="stuId">
+							<el-input v-model="stuForm.stuId"></el-input>
+						</el-form-item>
+										
+						<el-form-item label="密码" prop="stuPwd">
+							<el-input v-model="stuForm.stuPwd"></el-input>
+						</el-form-item>
+						
+						<el-form-item label="电话" prop="phoneNum">
+							<el-input v-model="stuForm.phoneNum"></el-input>
+						</el-form-item>
+					  
+				        <el-form-item>						
+						<el-button @click="addVisible = false">取消</el-button>
+				        <el-button @click="save">添加</el-button>			            
+				        </el-form-item>
+				    </el-form>
+				</el-dialog>
+			
+			
+			</div>
+		
+
+		<script src="../js/axios.min.js"></script>
+		<script src="../js/vue.js"></script>
+		<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+		<script>
+			//解决跨域时的会话跟踪机制
+			axios.defaults.withCredentials = true;
+			new Vue({
+				el: '#app',
+				data: {
+					inputId:'',
+					Students: [],
+					
+					total: 0,
+					pageSize: 6,
+					currentPage: 1,
+					
+					updateVisible: false,
+					addVisible: false,
+					
+					stuForm:{
+						stuName:'',
+						stuId:'',
+						stuPwd:'',
+						phoneNum:''
+					},
+			
+				rules: {
+							stuName: [
+								{ required: true, message: '姓名不能为空', trigger: 'blur' }
+							],
+							stuId: [
+								{ required: true, message: '学号不能为空', trigger: 'blur' }
+							],
+							stuPwd: [
+								{ required: true, message: '密码不能为空', trigger: 'blur' },
+								{ min: 8, message: '密码长度不能少于8位', trigger: 'blur' } 
+							],
+							phoneNum: [
+								{ required: true, message: '手机号不能为空', trigger: 'blur' }
+							]
+				            }
+					},
+								
+				methods: {
+									
+					loadStudents() {
+						axios.get('http://localhost:8080/stu/list', {
+								params: {
+								  page: this.currentPage,
+								  size: this.pageSize
+								}
+							}).then(res => {
+						        console.log("Response data:", res.data); // 调试信息
+						        if (res.data.isOk) {
+						            // this.$message(res.data.msg);
+						            this.Students = res.data.Students;
+									this.total = res.data.total;
+						            console.log("Students data:", this.Students); // 调试信息
+						        } else {
+						            this.$message.error(res.data.msg);
+						        }
+						    }).catch(error => {
+						        console.error("Error fetching Students:", error);
+						    });
+					},	
+					handlePageChange(page) {
+					  this.currentPage = page;
+					  this.loadStudents();
+					},
+					handleSizeChange(size) {
+					  this.pageSize = size;
+					  this.loadStudents();
+					},
+			
+					findStu(id) { // 确保使用传入的参数 id  
+				        axios.get('http://localhost:8080/stu/findId', {  
+				            params: {  
+				                id: this.inputId 			
+				            }  
+				        })  
+				        .then(response => {  
+				            if (response.data.isOk) { // 假设后端返回了 isOk 属性来判断请求是否成功  
+				                this.$message(response.data.msg); 
+															
+								this.Students = response.data.Students;// 假设后端返回了 Students 数组  
+								console.log("Find students data:", response.data.Students); // 调试信息
+		  				 	    this.total = response.data.Students.length;
+								
+								
+							} else {  
+				                this.$message.error(response.data.msg); // 如果失败，显示错误信息 
+								this.Students = [];
+								this.total = 0;
+								// this.loadStudents()
+				            }  
+				        })  
+				        .catch(error => {  
+				            console.error('Error:', error);  
+				            this.$message.error('查找学生时发生错误'); // 可以添加一个友好的错误消息  
+				        });  
+				    },  
+					delStu(id) {
+							axios.get('http://localhost:8080/stu/del', {
+								params: {
+									id
+								}
+							}).then(res => {								
+								    alert(res.data.msg);
+								    this.loadStudents()											
+							})
+					},	
+					
+					save(){
+							this.$refs.stuForm.validate((valid) => {
+								if (valid) {
+								let fd = new FormData();
+								fd.append('stuName',this.stuForm.stuName);
+								fd.append('stuId',this.stuForm.stuId);
+								fd.append('stuPwd',this.stuForm.stuPwd);
+								fd.append('phoneNum',this.stuForm.phoneNum);	
+														
+								const url = `http://localhost:8080/stu/${this.addVisible ? 'add' : 'update'}`;
+								
+								axios.post(url,fd).then(res => {
+									if(res.data.isOk){
+										this.updateVisible = false;
+										this.addVisible = false;
+										this.$message(res.data.msg);	
+										this.loadStudents();
+									}
+								})
+							} else {
+									
+									return false;
+								}
+							});
+					},
+					
+
+					edit(id){		
+							axios.get('http://localhost:8080/stu/findId',{  
+				            params: {  
+				                id
+				            }  
+				        }).then(response=>{						
+								student = response.data.Students;								
+								if (student) {
+										// 将 student 对象中的属性值赋给 stuForm 对象中对应的属性
+										this.stuForm.stuName = student[0].stuName;
+										this.stuForm.stuId = student[0].stuId;
+										this.stuForm.stuPwd = student[0].stuPwd;
+										this.stuForm.phoneNum = student[0].phoneNum;																		
+										this.updateVisible = true;
+									} else {
+										// 处理 student 不存在的情况，例如给出提示或者其他逻辑
+										console.error('未找到对应的学生信息');
+									}
+								this.updateVisible = true;
+								
+							})
+						},
+						
+					},
+					created() {
+						//Vue对象创建完成时，执行的钩子函数
+						this.loadStudents()
+					}				
+				})
+		</script>
+	</body>
+</html>

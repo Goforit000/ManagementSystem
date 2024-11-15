@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html>
+	<head>  
+	  <meta charset="utf-8">  
+	  <title>课程列表</title>  
+	  <style>  
+	    /* 居中对齐 */  
+	    .center {  
+	      text-align: center;  
+	    }  
+	  
+	    /* 表格样式 */  
+	    .el-table {  
+	      font-size: 16px; /* 设置字体大小 */  
+	      margin-top: 30px; /* 设置表格上边距 */  
+		  margin-left: 90px;
+	    }  
+	    
+	    /* 奇数行样式 */  
+	    .el-table__body tr:nth-child(odd) {  
+	      background-color: #d8ffff; /* 设置奇数行背景色 */  
+	    }  
+	  
+	    /* 偶数行样式 */  
+	    .el-table__body tr:nth-child(even) {  
+	      background-color: #ffffff; /* 设置偶数行背景色 */  
+	    }  
+
+	  </style>  
+	  
+	  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">  
+	</head>
+	<body>
+		<div id="app" class="center">	
+			
+			<div class="center">  
+			    <h3>课程信息列表</h3>  
+			</div>
+			<hr />
+			<el-input v-model="inputName" placeholder="请输入课程名称" @keydown.enter="findCourse" style="width: 150px; height: 30px;"></el-input>
+			<!-- <el-link icon="el-icon-search" @click="findCourse">查找课程</el-link> -->
+
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<!-- <el-input v-model="inputType" placeholder="请输入课程类型" style="width: 150px; height: 30px;"></el-input> -->
+			
+			
+		
+			  <el-select v-model="inputType" placeholder="请选择课程类型" style="width: 150px; height: 30px;">
+			    <el-option label="基础学科" value="基础学科"></el-option>
+			    <el-option label="专业课" value="专业课"></el-option>
+			    <el-option label="实践课" value="实践课"></el-option>
+				<el-option label="选修课" value="选修课"></el-option>
+			  </el-select>
+			
+			
+			<el-link icon="el-icon-search" @click="find">查找课程</el-link>
+			
+			
+
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<el-link icon="el-icon-circle-plus-outline" @click="addVisible = true">添加课程</el-link>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<el-link icon="el-icon-refresh-right" href="courseList.html">刷新表格</el-link>
+			
+			<p></p>
+			
+			
+		<el-table :data="Courses"  border style="width: 750px">
+			<el-table-column fixed prop="courseId" label="课程编号" width="170">
+			</el-table-column>
+			<el-table-column prop="courseName" label="课程名称" width="170">
+			</el-table-column>
+			<el-table-column prop="courseType" label="课程类型" width="170">
+			</el-table-column>
+			<el-table-column prop="courseNum" label="课程人数" width="170">
+			</el-table-column>
+
+			<el-table-column label="操作" width="150">
+				<template slot-scope="scope">
+					
+					<el-popconfirm :title="`确定删除课程:'${scope.row.courseName}'？`"
+						@confirm="delCourse(scope.row.courseId)">
+						
+						<el-link circle icon="el-icon-delete" slot="reference" type="danger">删除</el-link>
+					
+					</el-popconfirm>
+					&nbsp;&nbsp;
+					<el-link circle icon="el-icon-edit" slot="reference" type="primary" @click="edit(scope.row.courseId)">修改</el-link>
+					
+				</template>
+			</el-table-column>
+		</el-table>	
+			
+			<!-- 分页组件 -->			  
+			  <div class="block" style="margin-top: 20px"> 
+			        <el-pagination
+			          background
+			          layout="total, prev, pager, next, jumper"
+						:total="total"
+			          :current-page="currentPage"
+			          :page-size="pageSize"
+			          
+			          @current-change="handlePageChange"
+			          @size-change="handleSizeChange">
+			        </el-pagination>
+			      </div>
+		
+			
+				<el-dialog
+			            title="修改信息"
+			            :visible.sync="updateVisible" >
+			        <el-form :model="courseForm" :rules="rules" ref="courseForm" label-width="100px" class="demo-ruleForm">
+			        						
+						<el-form-item label="课程编号" prop="courseId">
+							<el-input v-model="courseForm.courseId":disabled="true"></el-input>
+						</el-form-item>
+						
+						<el-form-item label="课程名称" prop="courseName">
+							<el-input v-model="courseForm.courseName"></el-input>
+						</el-form-item>
+										
+						<el-form-item label="课程类型" prop="courseType">
+						  <el-select v-model="courseForm.courseType" placeholder="请选择课程类型">
+						    <el-option label="基础学科" value="基础学科"></el-option>
+						    <el-option label="专业课" value="专业课"></el-option>
+						    <el-option label="实践课" value="实践课"></el-option>
+							<el-option label="选修课" value="选修课"></el-option>
+						  </el-select>
+						</el-form-item>
+						
+						<el-form-item label="课程人数" prop="courseNum">
+							<el-input v-model="courseForm.courseNum"></el-input>
+						</el-form-item>
+					  
+			            <el-form-item>						
+						<el-button @click="updateVisible = false">取消</el-button>
+			            <el-button @click="save">保存</el-button>			            
+			            </el-form-item>
+			        </el-form>
+			    </el-dialog>
+				
+				<el-dialog
+				        title="添加信息"
+				        :visible.sync="addVisible">
+				    <el-form :model="courseForm" :rules="rules" ref="courseForm" label-width="100px" class="demo-ruleForm">
+				    						
+						<el-form-item label="课程编号" prop="courseId">
+							<el-input v-model="courseForm.courseId"></el-input>
+						</el-form-item>
+						
+						<el-form-item label="课程名称" prop="courseName">
+							<el-input v-model="courseForm.courseName"></el-input>
+						</el-form-item>
+										
+						<el-form-item label="课程类型" prop="courseType">
+						  <el-select v-model="courseForm.courseType" placeholder="请选择课程类型">
+						    <el-option label="基础学科" value="基础学科"></el-option>
+						    <el-option label="专业课" value="专业课"></el-option>
+						    <el-option label="实践课" value="实践课"></el-option>
+							<el-option label="选修课" value="选修课"></el-option>
+						  </el-select>
+						</el-form-item>
+						
+						<el-form-item label="课程人数" prop="courseNum">
+							<el-input v-model="courseForm.courseNum"></el-input>
+						</el-form-item>
+					  
+				        <el-form-item>						
+						<el-button @click="addVisible = false">取消</el-button>
+				        <el-button @click="save">添加</el-button>			            
+				        </el-form-item>
+				    </el-form>
+				</el-dialog>
+
+			</div>
+		
+
+		<script src="../js/axios.min.js"></script>
+		<script src="../js/vue.js"></script>
+		<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+		<script>
+			//解决跨域时的会话跟踪机制
+			axios.defaults.withCreials = true;
+			new Vue({
+				el: '#app',
+				data: {
+					inputName:'',
+					inputType: '',  // 课程类型输入框的值
+					Courses:[],
+					
+					total: 0,
+					pageSize: 6,
+					currentPage: 1,
+					
+					updateVisible: false,
+					addVisible: false,
+		
+					courseForm:{
+						courseId:'',
+						courseName:'',
+						courseType:'',
+						courseNum:'',
+					},
+			
+				rules: {
+						courseId: [
+							{ required: true, message: '课程编号不能为空', trigger: 'blur' },
+							{ pattern: /^A.*/, message: '课程编号必须以大写字母A开头', trigger: 'blur' }
+						],
+						courseName: [
+							{ required: true, message: '课程名称不能为空', trigger: 'blur' }
+						],
+						courseType: [
+							{ required: true, message: '课程类型不能为空', trigger: 'blur' }
+						],
+						courseNum: [
+							{ required: true, message: '课程人数不能为空', trigger: 'blur' },
+							{ validator: (rule, value, callback) => {
+								if (!Number.isInteger(Number(value))) {
+									callback(new Error('课程人数必须为整数'));
+								} else {
+									callback();
+								}
+							}, trigger: 'blur' }
+						]
+						}					
+				},
+								
+				methods: {								
+					loadCourses() {			
+						axios.get('http://localhost:8080/course/list', {
+								params: {
+								  page: this.currentPage,
+								  size: this.pageSize
+								}
+							}).then(res => {
+						        console.log("Response data:", res.data); // 调试信息
+						        if (res.data.isOk) {
+						            // this.$message(res.data.msg);
+						            this.Courses = res.data.Courses;
+									this.total = res.data.total;
+						            console.log("Courses data:", this.Courses); // 调试信息
+						        } else {
+						            this.$message.error(res.data.msg);
+						        }
+						    }).catch(error => {
+						        console.error("Error fetching Courses:", error);
+						    });
+					},	
+									
+			        handlePageChange(page) {
+			          this.currentPage = page;
+			          this.loadCourses();
+			        },
+			        handleSizeChange(size) {
+			          this.pageSize = size;
+			          this.loadCourses();
+			        },
+ 
+			find(){
+				if(this.inputName!=''&& this.inputType!=''){
+					 console.log(this.inputName,this.inputType,);
+				      axios.get('http://localhost:8080/course/findCon', {
+				        params: {
+				          name: this.inputName,
+						  type: this.inputType,					  
+				        }
+				      })
+				      .then((response) => {				 
+				        if (response.data.isOk) {
+				          this.Courses = response.data.Courses;
+				          this.total = response.data.Courses.length;
+				        } else {
+				          console.error('没有找到符合要求的课程');
+				          this.Courses = [];
+				          this.total = 0;
+				        }
+				      })
+				      .catch((error) => {
+				        console.error('查询失败:', error);
+				      });
+				    }else if(this.inputType!=''){
+						this.findByType();
+					}else{
+						this.findCourse();
+					}
+			},
+						
+					findCourse() {
+						
+					          axios.get('http://localhost:8080/course/findName', {
+					            params: {
+					              name: this.inputName
+					            }
+					          })
+					          .then((response) => {
+					            if (response.data.isOk) {
+					              this.Courses = response.data.Courses;
+					              this.total = response.data.Courses.length;
+					            } else {
+									this.$message('没有叫这个名字的课程');
+					              console.error('没有叫这个名字的课程');
+					              this.Courses = [];
+					              this.total = 0;
+					            }
+					          })
+					          .catch((error) => {
+					            console.error('查询失败:', error);
+					          });
+						},
+								  
+					findByType() {
+					  axios.get('http://localhost:8080/course/findByType', {
+					    params: {
+					      type: this.inputType
+					    }
+					  })
+					  .then((response) => {
+					    if (response.data.isOk) {
+					      this.Courses = response.data.Courses;
+						  console.log(response.data.Courses);				  
+					      this.total = response.data.Courses.length;
+					    } else {
+					      console.error('没有符合条件的课程');
+					      this.Courses = [];
+					      this.total = 0;
+					    }
+					  })
+					  .catch((error) => {
+					    console.error('查询失败:', error);
+					  });
+					},
+					
+					delCourse(id) {
+							console.log("del courses id:", id); // 调试信息
+							axios.get('http://localhost:8080/course/del', {
+								params: {
+									id
+								}
+							}).then(res => {								
+								    alert(res.data.msg);
+								    this.loadCourses()											
+							})
+					},	
+					
+					save(){
+							this.$refs.courseForm.validate((valid) => {
+								if (valid) {
+								let fd = new FormData();
+								fd.append('courseId',this.courseForm.courseId);
+								fd.append('courseName',this.courseForm.courseName);
+								fd.append('courseType',this.courseForm.courseType);
+								fd.append('courseNum',this.courseForm.courseNum);	
+														
+								const url = `http://localhost:8080/course/${this.addVisible ? 'add' : 'update'}`;
+								
+								axios.post(url,fd).then(res => {
+									if(res.data.isOk){
+										this.updateVisible = false;
+										this.addVisible = false;
+										this.$message(res.data.msg);	
+										this.loadCourses()
+										
+									}
+								})
+							} else {
+									
+									return false;
+								}
+							});
+					},
+					
+
+					edit(id){		
+							axios.get('http://localhost:8080/course/findId',{  
+				            params: {  
+				                id
+				            }  
+				        }).then(response=>{						
+								course = response.data.Courses;
+								console.log("Update courses data:", course); // 调试信息
+								
+								if (course) {
+										// 将 course 对象中的属性值赋给 courseForm 对象中对应的属性
+										this.courseForm.courseId = course[0].courseId;
+										this.courseForm.courseName = course[0].courseName;
+										this.courseForm.courseType = course[0].courseType;
+										this.courseForm.courseNum = course[0].courseNum;								
+										this.updateVisible = true;
+									} else {
+										// 处理 course 不存在的情况，例如给出提示或者其他逻辑
+										console.error('未找到对应的课程信息');
+									}
+								this.updateVisible = true;
+								
+							})
+						},
+				
+					},
+					created() {
+						//Vue对象创建完成时，执行的钩子函数
+						this.loadCourses()
+					}				
+				})
+		</script>
+	</body>
+</html>

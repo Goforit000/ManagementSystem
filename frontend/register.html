@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>注册</title>
+		<style>
+		        body {
+		            /* 设置背景图片路径 */
+		            background-image: url(../img/东北大学.jpg);
+		           /* 设置背景图片平铺方式 */
+		            background-size: cover;
+		            /* 设置背景图片固定 */
+		            background-attachment: fixed;
+		            /* 设置背景颜色，可选 */
+		            background-color: #ffffff;
+		        }
+		        .center {
+		            text-align: center;
+		            /* 如果需要在背景图上居中内容，可以设置一些额外的样式 */
+		            color: #000000; /* 文字颜色 */
+		        }
+		    </style>
+		<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+	</head>
+	<body>
+		<div id="app">
+			<h2 class="center">新用户注册</h2>
+			<el-row>
+			  <el-col  :offset="6" :span="12">
+				  <el-form :model="userForm" :rules="rules" ref="userForm" label-width="100px" class="demo-ruleForm">
+				  	
+					<el-form-item label="手机号" prop="tel">
+				  		<el-input v-model="userForm.tel"></el-input>
+				  	</el-form-item>
+				  	
+					<el-form-item label="密码" prop="loginPwd">
+				  		<el-input type="password" v-model="userForm.loginPwd"></el-input>
+				  	</el-form-item>
+					
+					<el-form-item label="确认密码" prop="conLoginPwd">
+						<el-input type="password" v-model="userForm.conLoginPwd"></el-input>
+					</el-form-item>
+					
+					<el-form-item label="姓名" prop="userName">
+						<el-input v-model="userForm.userName"></el-input>
+					</el-form-item>
+				  	
+				  	<el-form-item>
+						<el-button type="primary" @click.prevent="quxiao()">返回</el-button>
+				  		<el-button type="primary" @click.prevent="register()">注册</el-button>
+				  	</el-form-item>
+					
+				  </el-form>
+			  </el-col>
+			</el-row>
+		</div>
+		<script src="../js/axios.min.js"></script>
+		<script src="../js/vue.js"></script>
+		<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+		<script>
+			//解决跨域时的会话跟踪机制
+			axios.defaults.withCredentials = true;
+			new Vue({
+				el:'#app',
+					
+			data() {
+			        return {
+			          userForm: {
+			            tel: '',
+			            loginPwd: '',
+			            conLoginPwd: '',
+			            userName: ''
+			          },
+			          rules: {
+			            tel: [
+			              { required: true, message: '手机号不能为空', trigger: 'blur' }
+			            ],
+			            loginPwd: [
+			              { required: true, message: '密码不能为空', trigger: 'blur' }
+			            ],
+			            conLoginPwd: [
+			              { required: true, message: '请再次输入密码', trigger: 'blur' },
+			              { validator: this.validatePass, trigger: 'blur' }
+			            ],
+			            userName: [
+			              { required: true, message: '姓名不能为空', trigger: 'blur' }
+			            ],
+			          }
+			        }
+			      },
+			
+					methods:{		
+						
+						
+						validatePass(rule, value, callback) {
+						          if (value === '') {
+						            callback(new Error('请再次输入密码'));
+						          } else if (value !== this.userForm.loginPwd) {
+						            callback(new Error('两次输入密码不一致!'));
+						          } else {
+						            callback();
+						          }
+						        },
+						
+						
+						
+						register(){
+							this.$refs.userForm.validate((valid) => {
+								if (valid) {
+															
+									let fd = new FormData();
+									fd.append('tel', this.userForm.tel);
+									fd.append('loginPwd', this.userForm.loginPwd);
+									fd.append('userName', this.userForm.userName);
+									axios.post('http://localhost:8080/user/register', fd).then(res => {
+										if (res.data.isOk) {
+											
+											alert(res.data.msg);
+											location.href = 'login.html';
+										} else {
+											this.$message(res.data.msg);
+										}
+									})
+								} else {
+									
+									return false;
+								}
+							});
+						},
+						
+						quxiao(){
+							location.href= 'login.html';
+						}
+					}
+				                                      
+			})
+		</script>
+	</body>
+</html>

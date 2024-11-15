@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>添加课程</title>
+		<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+	</head>
+	<body>
+		<div id="app">
+			
+			<el-row>
+			  <el-col  :offset="6" :span="12">
+				  <el-form :model="courseForm" :rules="rules" ref="courseForm" label-width="100px" class="demo-ruleForm">
+				  	
+					<el-form-item label="课程编号" prop="courseId">
+				  		<el-input v-model="courseForm.courseId"></el-input>
+				  	</el-form-item>
+				  	
+					<el-form-item label="课程名称" prop="courseName">
+				  		<el-input v-model="courseForm.courseName"></el-input>
+				  	</el-form-item>
+					
+					<el-form-item label="课程类型" prop="courseType">
+					  <el-select v-model="courseForm.courseType" placeholder="请选择课程类型">
+					    <el-option label="基础学科" value="基础学科"></el-option>
+					    <el-option label="专业课" value="专业课"></el-option>
+					    <el-option label="实践课" value="实践课"></el-option>
+						<el-option label="选修课" value="选修课"></el-option>
+					  </el-select>
+					</el-form-item>
+					
+					<el-form-item label="课程人数" prop="courseNum">
+						<el-input v-model="courseForm.courseNum"></el-input>
+					</el-form-item>
+				  	
+				  	<el-form-item>
+				  		<el-button type="primary" @click.prevent="courseAdd()">添加</el-button>
+						<!-- @click.prevent:阻止默认行为(提交页面)，button在form中会变成提交按钮 -->
+				  	</el-form-item>
+					
+				  </el-form>
+			  </el-col>
+			</el-row>
+			
+		</div>
+		
+		<script src="../js/axios.min.js"></script>
+		<script src="../js/vue.js"></script>
+		<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+		
+		<script>
+			//解决跨域时的会话跟踪机制
+			axios.defaults.withCredentials = true;
+			new Vue({
+				el:'#app',
+				data:{
+					courseForm:{
+						courseId:'',
+						courseName:'',
+						courseType:'',
+						courseNum:''
+					},rules: {
+						courseId: [
+							{ required: true, message: '课程编号不能为空', trigger: 'blur' },
+							{ pattern: /^A.*/, message: '课程编号必须以大写字母A开头', trigger: 'blur' }
+						],
+						courseName: [
+							{ required: true, message: '课程名称不能为空', trigger: 'blur' }
+						],
+						courseType: [
+							{ required: true, message: '课程类型不能为空', trigger: 'blur' }
+						],
+						courseNum: [
+							{ required: true, message: '课程人数不能为空', trigger: 'blur' },
+							{ validator: (rule, value, callback) => {
+								if (!Number.isInteger(Number(value))) {
+									callback(new Error('课程人数必须为整数'));
+								} else {
+									callback();
+								}
+							}, trigger: 'blur' }
+						]
+						}				
+				},methods:{
+					courseAdd(){
+						this.$refs.courseForm.validate((valid) => {
+							if (valid) {
+							let fd = new FormData();
+							fd.append('courseId',this.courseForm.courseId);
+							fd.append('courseName',this.courseForm.courseName);
+							fd.append('courseType',this.courseForm.courseType);
+							fd.append('courseNum',this.courseForm.courseNum);							
+							axios.post('http://localhost:8080/course/add',fd).then(function(res){
+								if(res.data.isOk){
+									alert(res.data.msg);
+									location.href='courseList.html'
+								}
+							})
+						} else {
+								
+								return false;
+							}
+						});
+				}
+			}
+		})
+		</script>
+	</body>
+</html>

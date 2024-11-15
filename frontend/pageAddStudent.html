@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>添加学生</title>
+		<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+	</head>
+	<body>
+		<div id="app">
+			
+			<el-row>
+			  <el-col  :offset="6" :span="12">
+				  <el-form :model="stuForm" :rules="rules" ref="stuForm" label-width="100px" class="demo-ruleForm">
+				  	
+					<el-form-item label="姓名" prop="stuName">
+				  		<el-input v-model="stuForm.stuName"></el-input>
+				  	</el-form-item>
+				  	
+					<el-form-item label="学号" prop="stuId">
+				  		<el-input v-model="stuForm.stuId"></el-input>
+				  	</el-form-item>
+					
+					<el-form-item label="密码" prop="stuPwd">
+						<el-input v-model="stuForm.stuPwd"></el-input>
+					</el-form-item>
+					
+					<el-form-item label="电话" prop="phoneNum">
+						<el-input v-model="stuForm.phoneNum"></el-input>
+					</el-form-item>
+				  	
+				  	<el-form-item>
+				  		<el-button type="primary" @click.prevent="stuAdd()">添加</el-button>
+						<!-- @click.prevent:阻止默认行为(提交页面)，button在form中会变成提交按钮 -->
+				  	</el-form-item>
+					
+				  </el-form>
+			  </el-col>
+			</el-row>
+			
+		</div>
+
+		<script src="../js/axios.min.js"></script>
+		<script src="../js/vue.js"></script>
+		<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+		
+		<script>
+			//解决跨域时的会话跟踪机制
+			axios.defaults.withCredentials = true;
+			new Vue({
+				el:'#app',
+				data:{
+					stuForm:{
+						stuName:'',
+						stuId:'',
+						stuPwd:'',
+						phoneNum:''
+					},rules: {
+							stuName: [
+								{ required: true, message: '姓名不能为空', trigger: 'blur' }
+							],
+							stuId: [
+								{ required: true, message: '学号不能为空', trigger: 'blur' }
+							],
+							stuPwd: [
+								{ required: true, message: '密码不能为空', trigger: 'blur' },
+								{ min: 8, message: '密码长度不能少于8位', trigger: 'blur' } 
+							],
+							phoneNum: [
+								{ required: true, message: '手机号不能为空', trigger: 'blur' }
+							]
+				            }
+				},methods:{
+					stuAdd(){
+						this.$refs.stuForm.validate((valid) => {
+							if (valid) {
+							let fd = new FormData();
+							fd.append('stuName',this.stuForm.stuName);
+							fd.append('stuId',this.stuForm.stuId);
+							fd.append('stuPwd',this.stuForm.stuPwd);
+							fd.append('phoneNum',this.stuForm.phoneNum);							
+							axios.post('http://localhost:8080/stu/add',fd).then(function(res){
+								if(res.data.isOk){
+									alert(res.data.msg);
+									location.href='stuList.html'
+								}
+							})
+						} else {
+								
+								return false;
+							}
+						});
+				}
+			}
+		})
+		</script>
+	</body>
+</html>

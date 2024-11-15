@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vue Element-UI Menu</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+  <style>
+    .el-menu-demo {
+      background-color: #ADD8E6;
+      color: #000;
+    }
+    .content {
+      margin-top: 20px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="content">
+    <el-menu
+      default-active="2"
+      class="el-menu-demo"
+      mode="horizontal"
+      @select="handleSelect"
+      background-color="#ADD8E6"
+      text-color="#000"
+      active-text-color="#409EFF"
+    >
+      <el-menu-item  index="1">首页</el-menu-item>
+      <el-submenu index="2">
+        <template  slot="title">学生管理</template>
+        <el-menu-item  index="2-1">学生列表</el-menu-item>
+        <el-menu-item  index="2-2">添加学生</el-menu-item>
+      </el-submenu>
+      <el-submenu index="3">
+        <template  slot="title">课程管理</template>
+        <el-menu-item  index="3-1">课程列表</el-menu-item>
+        <el-menu-item  index="3-2">添加课程</el-menu-item>
+      </el-submenu>
+      <el-submenu index="4">
+        <template  slot="title">图书管理</template>
+        <el-menu-item  index="4-1">图书列表</el-menu-item>
+        <el-menu-item  index="4-2">添加图书</el-menu-item>
+      </el-submenu>
+      <el-menu-item  index="5">个人中心</el-menu-item>
+	  <el-menu-item  index="6">安全退出</el-menu-item>
+    </el-menu>
+	
+	
+    <div class="content">	
+	<!-- 根据 activeIndex 动态显示 iframe -->
+    <div v-if="activeIndex === '1'">
+		  <iframe src="FirstPage.html" frameborder="0" width="100%" height="500px"></iframe>
+	  </div>
+      <div v-else-if="activeIndex === '2-1'">
+        <iframe src="stuList.html" frameborder="0" width="100%" height="500px"></iframe>
+      </div>
+      <div v-else-if="activeIndex === '2-2'">
+		  <iframe src="pageAddStudent.html" frameborder="0" width="100%" height="500px"></iframe>
+	  </div>
+      <div v-else-if="activeIndex === '3-1'">
+		  <iframe src="courseList.html" frameborder="0" width="100%" height="500px"></iframe>
+	  </div>
+      <div v-else-if="activeIndex === '3-2'">
+		  <iframe src="pageAddCourse.html" frameborder="0" width="100%" height="500px"></iframe>
+	  </div>
+      <div v-else-if="activeIndex === '4-1'">
+		  <iframe src="bookList.html" frameborder="0" width="100%" height="500px"></iframe>
+		  
+	  </div>
+	  
+      <div v-else-if="activeIndex === '4-2'">
+		  <iframe src="pageAddBook.html" frameborder="0" width="100%" height="500px"></iframe>
+	  </div>
+      <div v-else-if="activeIndex === '5'">
+		  <iframe src="people.html" frameborder="0" width="100%" height="500px"></iframe>
+	  </div>
+	  <div v-else-if="activeIndex === '6'">
+		  <!-- <iframe src="logout.html" frameborder="0" width="100%" height="500px"></iframe> -->	
+				
+	
+	  </div>
+    </div>
+  </div>
+
+  <script src="../js/axios.min.js"></script>
+  <script src="../js/vue.js"></script>
+  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+  <script>
+	  //解决跨域时的会话跟踪机制
+	  axios.defaults.withCreials = true;
+    new Vue({
+      el: '#app',
+      data() {
+        return {
+          activeIndex: '1',
+        };
+      },
+  methods: {
+          handleSelect(key, keyPath) {
+            if (key === '6') {
+              this.logout();
+            } else {
+              this.activeIndex = key;
+            }
+          },
+          logout() {
+            axios.post('http://localhost:8080/user/logout')
+              .then(response => {
+                this.$message({
+                  message: '退出成功',
+                  type: 'success',
+                  duration: 500,
+                  onClose: () => {
+                    location.href = 'login.html';
+                  }
+                });
+              })
+              .catch(error => {
+                this.$message.error('退出失败');
+              });
+          }
+        },
+    });
+  </script>
+</body>
+</html>

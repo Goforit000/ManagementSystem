@@ -1,0 +1,140 @@
+ <!DOCTYPE html>
+ <html>
+ <head>
+     <meta charset="utf-8">
+     <title>首页</title>
+     <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+     <style>
+		 .center{
+			 text-align: center;
+		 }
+         .el-carousel__item h3 {
+             color: #475669;
+             font-size: 14px;
+             opacity: 0.75;
+             line-height: 150px;
+             margin: 0;
+         }
+ 
+         .el-carousel__item:nth-child(2n) {
+             background-color: #99a9bf;
+         }
+ 
+         .el-carousel__item:nth-child(2n+1) {
+             background-color: #d3dce6;
+         }
+ 
+         .container {
+             display: flex;
+         }
+ 
+         .left-container {
+             display: flex;
+             flex-direction: column;
+             width: 60%;
+			 margin-bottom: 20px;
+         }
+ 
+         .carousel-container {
+             margin-bottom: 20px;
+         }
+ 
+         .block {
+			 margin-left: 40px;
+             width: 30%;
+             padding: 20px;
+             box-sizing: border-box;
+         }
+     </style>
+ </head>
+ <body>
+	 <div class="center" style="font-family: 华文行楷">
+	 	<h1 >庆祝东北大学成立101周年！</h1>
+		<h2 >欢迎王小虎登录！</h2>
+	 </div>
+	 
+ <div id="app" class="container">
+	 
+     <div class="left-container">
+         <div class="carousel-container">
+             <el-carousel :interval="4000" type="card" height="200px">
+                 <el-carousel-item v-for="item in images" :key="item">
+                     <h3 class="medium">
+                         <img :src="item" alt="Image" style="width: 100%; height: 100%;">
+                     </h3>
+                 </el-carousel-item>
+             </el-carousel>
+         </div>
+         <div class="calendar-container">
+             <el-calendar v-model="value"></el-calendar>
+         </div>
+     </div>
+     <div class="block">
+		 
+       <el-timeline>
+         <el-timeline-item :timestamp="getCurrentDate()" placement="top">
+           <el-card>
+             <h4>更新 学生 信息</h4>
+             <p>王小虎 提交于 {{ getCurrentDateTime() }}</p>
+           </el-card>
+         </el-timeline-item>
+
+         <el-timeline-item timestamp="2024/6/8" placement="top">
+           <el-card>
+             <h4>更新 课程 信息</h4>
+             <p>王小虎 提交于 2024/6/8 19:46</p>
+           </el-card>
+         </el-timeline-item>
+         <el-timeline-item timestamp="2024/5/25" placement="top">
+           <el-card>
+             <h4>更新 图书 信息</h4>
+             <p>王小虎 提交于 2024/5/25 18:26</p>
+           </el-card>
+         </el-timeline-item>
+       </el-timeline>
+     </div>
+ </div>
+ 
+ <script src="../js/axios.min.js"></script>
+ <script src="../js/vue.js"></script>
+ <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+ <script>
+	 //解决跨域时的会话跟踪机制
+	 axios.defaults.withCreials = true;
+     new Vue({
+         el: '#app',
+         data() {
+             return {
+                 value: new Date(),
+                 images: [
+                     '../img/5.jpg',
+                     '../img/6.jpg',
+ 					'../img/1.jpg',
+ 					'../img/2.jpg',
+ 					'../img/3.png',
+ 					'../img/4.jpg',
+                 ]
+             };
+         },methods: {
+  getCurrentDate() {
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+    const month = ('0' + (currentDate.getMonth() + 1)).slice(-2);
+    const day = ('0' + currentDate.getDate()).slice(-2);
+    return `${year}/${month}/${day}`;
+  },
+  getCurrentDateTime() {
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+    const month = ('0' + (currentDate.getMonth() + 1)).slice(-2);
+    const day = ('0' + currentDate.getDate()).slice(-2);
+    const hours = ('0' + currentDate.getHours()).slice(-2);
+    const minutes = ('0' + currentDate.getMinutes()).slice(-2);
+    return `${year}/${month}/${day} ${hours}:${minutes}`;
+  }
+}
+
+     });
+ </script>
+ </body>
+ </html>

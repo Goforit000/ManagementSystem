@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>登录</title>
+		<style>
+		        body {
+		            /* 设置背景图片路径 */
+		            background-image: url(../img/东北大学.jpg);
+		           /* 设置背景图片平铺方式 */
+		            background-size: cover;
+		            /* 设置背景图片固定 */
+		            background-attachment: fixed;
+		            /* 设置背景颜色，可选 */
+		            background-color: #ffffff;
+		        }
+		        .center {
+		            text-align: center;
+		            /* 如果需要在背景图上居中内容，可以设置一些额外的样式 */
+		            color: #000000; /* 文字颜色 */
+		        }
+		    </style>
+	 	
+		<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+	</head>
+	<body>
+		<div id="app" class="element">
+			<h2 class="center">欢迎使用软件学院管理系统！</h2>
+			<p></p><p></p><p></p><p></p><p></p>
+			<el-row >
+			  <el-col  :offset="6" :span="12">
+				  <el-form :model="userForm" :rules="rules" ref="userForm" label-width="100px" class="demo-ruleForm">
+				  	<el-form-item label="手机号" prop="tel">
+				  		<el-input v-model="userForm.tel"></el-input>
+				  	</el-form-item>
+					
+				  	<el-form-item label="密码" prop="loginPwd">
+				  		<el-input v-model="userForm.loginPwd" show-password></el-input>
+				  	</el-form-item>
+				  	
+				  	<el-form-item>
+				  		<el-button type="primary" @click.prevent="login()">登录</el-button>
+				  		<el-button type="primary" @click.prevent="register()">注册</el-button>
+				  	</el-form-item>
+				  </el-form>
+			  </el-col>
+			</el-row>
+		</div>
+		<script src="../js/axios.min.js"></script>
+		<script src="../js/vue.js"></script>
+		<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+		<script>
+			//解决跨域时的会话跟踪机制
+			axios.defaults.withCredentials = true;
+			new Vue({
+				el:'#app',
+				data:{
+					userForm:{
+						tel:'',
+						loginPwd:''
+					},
+					rules: {
+					    tel: [
+					        { 
+					            required: true, // 设置此字段为必填项
+					            message: '手机号不能为空', // 验证失败时的错误信息
+					            trigger: 'blur' // 触发验证的事件，这里设置为失去焦点时触发
+					        }
+					    ],
+					    loginPwd: [
+					        { 
+					            required: true, // 设置此字段为必填项
+					            message: '密码不能为空', // 验证失败时的错误信息
+					            trigger: 'blur' // 触发验证的事件，这里设置为失去焦点时触发
+					        }
+					    ]
+					}
+					},
+					methods: {
+					    login() {
+					        this.$refs.userForm.validate((valid) => { // 调用表单的验证方法
+					            if (valid) { // 如果验证通过
+					                let login_user = new FormData(); // 创建FormData对象
+					                login_user.append('tel', this.userForm.tel); // 添加手机号到FormData对象
+					                login_user.append('loginPwd', this.userForm.loginPwd); // 添加密码到FormData对象
+					                axios.post('http://localhost:8080/user/login', login_user, { withCredentials: true })
+					                    .then(res => {
+					                        if (res.data.isOk) { // 如果后端返回的结果表示登录成功
+					                            this.$message(res.data.msg); // 显示成功信息
+					                            location.href = 'MainPage.html'; // 跳转到主页面
+					                        } else { // 如果登录失败
+					                            this.$message(res.data.msg); // 显示失败信息
+					                        }
+					                    })
+					            } else { // 如果验证不通过
+					                return false; // 返回false，停止后续操作
+					            }
+					        });
+					    },
+					    register() {
+					        location.href = 'register.html'; // 跳转到注册页面
+					    }
+					}
+     
+			})
+		</script>
+	</body>
+</html>
